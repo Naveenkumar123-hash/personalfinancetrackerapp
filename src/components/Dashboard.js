@@ -19,29 +19,6 @@ import { unparse } from "papaparse";
 const Dashboard = () => {
   const [user] = useAuthState(auth);
 
-  // const sampleTransactions = [
-  // {
-  //   name: "Pay day",
-  //   type: "income",
-  //   date: "2023-01-15",
-  //   amount: 2000,
-  //   tag: "salary",
-  // },
-  // {
-  //   name: "Dinner",
-  //   type: "expense",
-  //   date: "2023-01-20",
-  //   amount: 500,
-  //   tag: "food",
-  // },
-  // {
-  //   name: "Books",
-  //   type: "expense",
-  //   date: "2023-01-25",
-  //   amount: 300,
-  //   tag: "education",
-  // },
-  // ];
   const [isExpenseModalVisible, setIsExpenseModalVisible] = useState(false);
   const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -53,35 +30,28 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const processChartData = () => {
-    const balanceData = [];
+    const balanceData=[];
     const spendingData = {};
+    const sortedarr=transactions.sort((a,b)=>{
+      return new Date(a.date) - new Date(b.date);
+    })
 
-    transactions.forEach((transaction) => {
-      const monthYear = moment(transaction.date).format("MMM YYYY");
+    sortedarr.forEach((transaction) => {
       const tag = transaction.tag;
 
-      if (transaction.type === "income") {
-        if (balanceData.some((data) => data.month === monthYear)) {
-          balanceData.find((data) => data.month === monthYear).balance +=
-            transaction.amount;
-        } else {
-          balanceData.push({ month: monthYear, balance: transaction.amount });
-        }
-      } else {
-        if (balanceData.some((data) => data.month === monthYear)) {
-          balanceData.find((data) => data.month === monthYear).balance -=
-            transaction.amount;
-        } else {
-          balanceData.push({ month: monthYear, balance: -transaction.amount });
-        }
-
+      if (transaction.type === "expense") {
         if (spendingData[tag]) {
           spendingData[tag] += transaction.amount;
         } else {
           spendingData[tag] = transaction.amount;
         }
       }
-    });
+      if(transaction.type==="income"){
+        balanceData.push({month:transaction.date,income:transaction.amount})
+      }
+      }
+    );
+
 
     const spendingDataArray = Object.keys(spendingData).map((key) => ({
       category: key,
@@ -187,7 +157,7 @@ const Dashboard = () => {
   const balanceConfig = {
     data: balanceData,
     xField: "month",
-    yField: "balance",
+    yField: "income",
   };
 
   const spendingConfig = {
