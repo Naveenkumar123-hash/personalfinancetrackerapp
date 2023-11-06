@@ -37,21 +37,31 @@ const Dashboard = () => {
     })
 
     sortedarr.forEach((transaction) => {
+      const monthYear = moment(transaction.date).format("MMM YYYY");
       const tag = transaction.tag;
 
-      if (transaction.type === "expense") {
+      if (transaction.type === "income") {
+        if (balanceData.some((data) => data.month === monthYear)) {
+          balanceData.find((data) => data.month === monthYear).balance +=
+            transaction.amount;
+        } else {
+          balanceData.push({ month: monthYear, balance: transaction.amount });
+        }
+      } else {
+        if (balanceData.some((data) => data.month === monthYear)) {
+          balanceData.find((data) => data.month === monthYear).balance -=
+            transaction.amount;
+        } else {
+          balanceData.push({ month: monthYear, balance: -transaction.amount });
+        }
+
         if (spendingData[tag]) {
           spendingData[tag] += transaction.amount;
         } else {
           spendingData[tag] = transaction.amount;
         }
       }
-      if(transaction.type==="income"){
-        balanceData.push({month:transaction.date,income:transaction.amount})
-      }
-      }
-    );
-
+    });
 
     const spendingDataArray = Object.keys(spendingData).map((key) => ({
       category: key,
@@ -157,7 +167,7 @@ const Dashboard = () => {
   const balanceConfig = {
     data: balanceData,
     xField: "month",
-    yField: "income",
+    yField: "balance",
   };
 
   const spendingConfig = {
